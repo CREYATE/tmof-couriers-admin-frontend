@@ -4,7 +4,7 @@ import React from "react";
 import {
 	LogOut,
 	LayoutDashboard,
-	Package,
+	Car,
 	BarChart2,
 	BookOpen,
 	Settings,
@@ -14,7 +14,7 @@ import {
 
 const menuItems = [
 	{ label: "Dashboard", tab: "dashboard", icon: LayoutDashboard },
-	{ label: "Orders", tab: "orders", icon: Package },
+	{ label: "Drivers", tab: "drivers", icon: Car },
 	{ label: "Analytics", tab: "analytics", icon: BarChart2 },
 	{ label: "Access Logs", tab: "access-logs", icon: BookOpen },
 	{ label: "Pricing", tab: "pricing", icon: DollarSign },

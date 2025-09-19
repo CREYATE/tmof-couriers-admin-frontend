@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminDashboard from "@/components/admin/AdminDashboard";
-import OrderManagement from "@/components/admin/OrderManagement";
+import DriverManagement from "@/components/admin/DriverManagement";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import AccessLogViewer from "@/components/admin/AccessLogViewer";
 import BusinessSettings from "@/components/admin/BusinessSettings";
@@ -15,8 +15,8 @@ function renderSection(tab: string) {
   switch (tab) {
     case "dashboard":
       return <AdminDashboard />;
-    case "orders":
-      return <OrderManagement />;
+    case "drivers":
+      return <DriverManagement />;
     case "analytics":
       return <AnalyticsDashboard />;
     case "access-logs":
