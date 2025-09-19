@@ -1,16 +1,25 @@
 "use client";
 
 import React from "react";
-import { LogOut } from "lucide-react";
+import {
+	LogOut,
+	LayoutDashboard,
+	Package,
+	BarChart2,
+	BookOpen,
+	Settings,
+	DollarSign,
+	Headphones,
+} from "lucide-react";
 
 const menuItems = [
-	{ label: "Dashboard", tab: "dashboard" },
-	{ label: "Orders", tab: "orders" },
-	{ label: "Analytics", tab: "analytics" },
-	{ label: "Access Logs", tab: "access-logs" },
-	{ label: "Settings", tab: "settings" },
-	{ label: "Pricing", tab: "pricing" },
-	{ label: "Support", tab: "support" },
+	{ label: "Dashboard", tab: "dashboard", icon: LayoutDashboard },
+	{ label: "Orders", tab: "orders", icon: Package },
+	{ label: "Analytics", tab: "analytics", icon: BarChart2 },
+	{ label: "Access Logs", tab: "access-logs", icon: BookOpen },
+	{ label: "Pricing", tab: "pricing", icon: DollarSign },
+	{ label: "Support", tab: "support", icon: Headphones },
+	{ label: "Settings", tab: "settings", icon: Settings },
 ];
 
 export default function AdminSidebar({
@@ -21,25 +30,30 @@ export default function AdminSidebar({
 	setActiveTab: (tab: string) => void;
 }) {
 	return (
-		<aside className="w-full h-full bg-gray-100 border-r border-gray-200 flex flex-col justify-between min-h-[300px]">
-			<nav className="flex flex-col gap-2 py-8 px-6 flex-1">
-				{menuItems.map((item) => (
-					<button
-						key={item.tab}
-						type="button"
-						tabIndex={0}
-						onClick={() => setActiveTab(item.tab)}
-						className={`block w-full text-left font-medium rounded-lg px-6 py-3 text-lg transition-all text-[#0C0E29] hover:text-[#ffd215] hover:bg-[#0C0E29]/10 focus:outline-none focus:ring-2 focus:ring-[#ffd215] ${
-							activeTab === item.tab ? "bg-[#ffd215] text-black" : ""
-						}`}
-					>
-						{item.label}
-					</button>
-				))}
+		<aside className="fixed top-20 left-0 z-[90] w-64 h-[calc(100vh-80px)] bg-gray-100 border-r border-gray-200 flex flex-col justify-between">
+			<nav className="flex flex-col gap-3 py-6 px-3 flex-1">
+				{menuItems.map((item) => {
+					const Icon = item.icon;
+					return (
+						<button
+							key={item.tab}
+							type="button"
+							tabIndex={0}
+							onClick={() => setActiveTab(item.tab)}
+							className={`flex items-center gap-3 w-full text-left font-medium rounded-lg px-5 py-2.5 text-base transition-all text-[#0C0E29] hover:text-[#ffd215] hover:bg-[#0C0E29]/10 focus:outline-none focus:ring-2 focus:ring-[#ffd215] ${
+								activeTab === item.tab ? "bg-[#ffd215] text-black" : ""
+							}`}
+						>
+							<Icon className="h-5 w-5" />
+							<span>{item.label}</span>
+						</button>
+					);
+				})}
+				<div className="flex-1" />
 			</nav>
-			<div className="px-6 pb-6">
+			<div className="px-5 pb-6">
 				<button
-					className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg"
+					className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg mt-2"
 					onClick={() => (window.location.href = "/")}
 				>
 					<LogOut className="h-5 w-5" />
