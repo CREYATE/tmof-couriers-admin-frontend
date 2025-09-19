@@ -109,8 +109,9 @@ const PricingConfiguration = () => {
   const saveSurgeSettings = () => {};
 
   return (
-    <div className="space-y-6">
-      {/* Service Pricing Rules */}
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold mt-6 mb-2">Pricing Configuration</h2>
+      <div className="mt-6" />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

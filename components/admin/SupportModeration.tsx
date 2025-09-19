@@ -110,236 +110,244 @@ const SupportModeration = () => {
   });
   const selectedTicketData = tickets.find(t => t.id === selectedTicket);
   return (
-    <div className="space-y-6">
-      {/* Support Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Open Tickets</p>
-                <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'open').length}</p>
-              </div>
-              <MessageSquare className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'in_progress').length}</p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Resolved Today</p>
-                <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'resolved').length}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Urgent Tickets</p>
-                <p className="text-2xl font-bold">{tickets.filter(t => t.priority === 'urgent').length}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Tickets List */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Support Tickets</CardTitle>
-              <div className="flex gap-4">
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={filterPriority} onValueChange={setFilterPriority}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Filter by priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priority</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ticket ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTickets.map((ticket) => (
-                    <TableRow 
-                      key={ticket.id} 
-                      className={selectedTicket === ticket.id ? 'bg-blue-50' : ''}
-                    >
-                      <TableCell className="font-medium">{ticket.ticket_id}</TableCell>
-                      <TableCell>{ticket.customer_name}</TableCell>
-                      <TableCell className="max-w-xs truncate">{ticket.subject}</TableCell>
-                      <TableCell>
-                        <Badge className={getPriorityColor(ticket.priority)}>
-                          {ticket.priority.toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(ticket.status)}>
-                          {getStatusIcon(ticket.status)}
-                          <span className="ml-1">{ticket.status.replace('_', ' ').toUpperCase()}</span>
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setSelectedTicket(ticket.id)}
-                        >
-                          <User className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
-        {/* Ticket Details */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Ticket Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {selectedTicketData ? (
-                <div className="space-y-4">
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold mt-6 mb-2">Support & Moderation</h2>
+      <div className="mt-6" />
+      <Card>
+        <CardHeader>
+          <CardTitle>Support Tickets</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <Label>Ticket ID</Label>
-                    <p className="font-medium">{selectedTicketData.ticket_id}</p>
+                    <p className="text-sm text-gray-600">Open Tickets</p>
+                    <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'open').length}</p>
                   </div>
+                  <MessageSquare className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <Label>Customer</Label>
-                    <p className="font-medium">{selectedTicketData.customer_name}</p>
-                    <p className="text-sm text-gray-600">{selectedTicketData.customer_email}</p>
+                    <p className="text-sm text-gray-600">In Progress</p>
+                    <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'in_progress').length}</p>
                   </div>
-                  {selectedTicketData.order_id && (
-                    <div>
-                      <Label>Related Order</Label>
-                      <p className="font-medium">{selectedTicketData.order_id}</p>
-                    </div>
-                  )}
+                  <Clock className="h-8 w-8 text-yellow-600" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <Label>Subject</Label>
-                    <p className="font-medium">{selectedTicketData.subject}</p>
+                    <p className="text-sm text-gray-600">Resolved Today</p>
+                    <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'resolved').length}</p>
                   </div>
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <Label>Description</Label>
-                    <p className="text-sm">{selectedTicketData.description}</p>
+                    <p className="text-sm text-gray-600">Urgent Tickets</p>
+                    <p className="text-2xl font-bold">{tickets.filter(t => t.priority === 'urgent').length}</p>
                   </div>
-                  <div>
-                    <Label>Status</Label>
-                    <Select 
-                      value={selectedTicketData.status} 
-                      onValueChange={(value) => updateTicketStatus(selectedTicketData.id, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Tickets List */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Support Tickets</CardTitle>
+                  <div className="flex gap-4">
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Filter by status" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
                         <SelectItem value="open">Open</SelectItem>
                         <SelectItem value="in_progress">In Progress</SelectItem>
                         <SelectItem value="resolved">Resolved</SelectItem>
                         <SelectItem value="closed">Closed</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div>
-                    <Label>Assign to Agent</Label>
-                    <Select 
-                      value={selectedTicketData.assigned_to || ''} 
-                      onValueChange={(value) => assignTicket(selectedTicketData.id, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select agent" />
+                    <Select value={filterPriority} onValueChange={setFilterPriority}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Filter by priority" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Support Agent 1">Support Agent 1</SelectItem>
-                        <SelectItem value="Support Agent 2">Support Agent 2</SelectItem>
-                        <SelectItem value="Support Agent 3">Support Agent 3</SelectItem>
+                        <SelectItem value="all">All Priority</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="response">Response Message</Label>
-                    <Textarea
-                      id="response"
-                      value={responseMessage}
-                      onChange={(e) => setResponseMessage(e.target.value)}
-                      placeholder="Type your response to the customer..."
-                      rows={4}
-                    />
-                    <Button 
-                      className="w-full mt-2"
-                      onClick={() => sendResponse(selectedTicketData.id)}
-                    >
-                      <Send className="mr-2 h-4 w-4" />
-                      Send Response
-                    </Button>
-                  </div>
-                  {selectedTicketData.status !== 'resolved' && (
-                    <Button 
-                      className="w-full bg-green-600 hover:bg-green-700"
-                      onClick={() => resolveTicket(selectedTicketData.id, 'Issue resolved by admin')}
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Mark as Resolved
-                    </Button>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Ticket ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Priority</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTickets.map((ticket) => (
+                        <TableRow 
+                          key={ticket.id} 
+                          className={selectedTicket === ticket.id ? 'bg-blue-50' : ''}
+                        >
+                          <TableCell className="font-medium">{ticket.ticket_id}</TableCell>
+                          <TableCell>{ticket.customer_name}</TableCell>
+                          <TableCell className="max-w-xs truncate">{ticket.subject}</TableCell>
+                          <TableCell>
+                            <Badge className={getPriorityColor(ticket.priority)}>
+                              {ticket.priority.toUpperCase()}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(ticket.status)}>
+                              {getStatusIcon(ticket.status)}
+                              <span className="ml-1">{ticket.status.replace('_', ' ').toUpperCase()}</span>
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{new Date(ticket.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setSelectedTicket(ticket.id)}
+                            >
+                              <User className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+            {/* Ticket Details */}
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Ticket Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {selectedTicketData ? (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Ticket ID</Label>
+                        <p className="font-medium">{selectedTicketData.ticket_id}</p>
+                      </div>
+                      <div>
+                        <Label>Customer</Label>
+                        <p className="font-medium">{selectedTicketData.customer_name}</p>
+                        <p className="text-sm text-gray-600">{selectedTicketData.customer_email}</p>
+                      </div>
+                      {selectedTicketData.order_id && (
+                        <div>
+                          <Label>Related Order</Label>
+                          <p className="font-medium">{selectedTicketData.order_id}</p>
+                        </div>
+                      )}
+                      <div>
+                        <Label>Subject</Label>
+                        <p className="font-medium">{selectedTicketData.subject}</p>
+                      </div>
+                      <div>
+                        <Label>Description</Label>
+                        <p className="text-sm">{selectedTicketData.description}</p>
+                      </div>
+                      <div>
+                        <Label>Status</Label>
+                        <Select 
+                          value={selectedTicketData.status} 
+                          onValueChange={(value) => updateTicketStatus(selectedTicketData.id, value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="open">Open</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="resolved">Resolved</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Assign to Agent</Label>
+                        <Select 
+                          value={selectedTicketData.assigned_to || ''} 
+                          onValueChange={(value) => assignTicket(selectedTicketData.id, value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select agent" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Support Agent 1">Support Agent 1</SelectItem>
+                            <SelectItem value="Support Agent 2">Support Agent 2</SelectItem>
+                            <SelectItem value="Support Agent 3">Support Agent 3</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="response">Response Message</Label>
+                        <Textarea
+                          id="response"
+                          value={responseMessage}
+                          onChange={(e) => setResponseMessage(e.target.value)}
+                          placeholder="Type your response to the customer..."
+                          rows={4}
+                        />
+                        <Button 
+                          className="w-full mt-2"
+                          onClick={() => sendResponse(selectedTicketData.id)}
+                        >
+                          <Send className="mr-2 h-4 w-4" />
+                          Send Response
+                        </Button>
+                      </div>
+                      {selectedTicketData.status !== 'resolved' && (
+                        <Button 
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          onClick={() => resolveTicket(selectedTicketData.id, 'Issue resolved by admin')}
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Mark as Resolved
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">Select a ticket to view details</p>
                   )}
-                </div>
-              ) : (
-                <p className="text-gray-500">Select a ticket to view details</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

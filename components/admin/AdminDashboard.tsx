@@ -9,75 +9,151 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Package, Users, AlertTriangle, Shield, MapPin, Plus, Phone } from "lucide-react";
+import { Package, Users, AlertTriangle, Shield, MapPin, Truck, CheckCircle2, XCircle } from "lucide-react";
 
-// Mock data
+// --- Types ---
+interface Order {
+	id: number;
+	trackingNumber: string;
+	distance: number;
+	price: number;
+	status: string;
+	pickupAddress: string;
+	deliveryAddress: string;
+	recipientName: string;
+	recipientPhone: string;
+	recipientEmail?: string;
+	deliveryNotes?: string;
+	preferredTime?: string;
+	serviceType: string;
+	createdAt: string;
+	customerName?: string;
+}
+
+const getStatusBadgeColor = (status: string) => {
+	switch (status) {
+		case "DELIVERED":
+			return "bg-green-600 text-white";
+		case "CANCELLED":
+			return "bg-red-600 text-white";
+		case "IN_TRANSIT":
+			return "bg-orange-500 text-white";
+		case "AWAITING_COLLECTION":
+		case "PAID":
+			return "bg-yellow-500 text-black";
+		case "COLLECTED":
+			return "bg-blue-500 text-white";
+		default:
+			return "bg-gray-200 text-gray-800";
+	}
+};
+
+// --- Mock Data ---
 const mockDrivers = [
-	{ id: "1", name: "John Doe", email: "john@example.com", phone: "+27 11 123 4567", status: "available" },
-	{ id: "2", name: "Jane Smith", email: "jane@example.com", phone: "+27 11 987 6543", status: "available" }
+	{ id: "1", name: "John Doe", email: "john@example.com", phone: "+27 11 123 4567", status: "available", lat: -26.2041, lng: 28.0473 },
+	{ id: "2", name: "Jane Smith", email: "jane@example.com", phone: "+27 11 987 6543", status: "available", lat: -25.7479, lng: 28.2293 }
 ];
-const mockOrders = [
-	{ id: "1", customer_name: "Alice", customer_email: "alice@email.com", customer_phone: "+27 12 345 6789", pickup_address: "123 Main St", dropoff_address: "456 Oak Ave", service_type: "standard", order_status: "created", quotation: 100, tracking_id: "TMOF-0001", created_at: new Date().toISOString() },
-	{ id: "2", customer_name: "Bob", customer_email: "bob@email.com", customer_phone: "+27 98 765 4321", pickup_address: "789 Pine Rd", dropoff_address: "321 Maple Dr", service_type: "same_day", order_status: "pending", quotation: 150, tracking_id: "TMOF-0002", created_at: new Date().toISOString() }
+const mockOrders: Order[] = [
+	{
+		id: 1,
+		trackingNumber: "TMOF-0001",
+		distance: 0,
+		price: 100,
+		status: "AWAITING_COLLECTION",
+		pickupAddress: "123 Main St, Sandton",
+		deliveryAddress: "456 Oak Ave, Rosebank",
+		recipientName: "Alice",
+		recipientPhone: "+27 12 345 6789",
+		serviceType: "standard",
+		createdAt: new Date().toISOString(),
+		customerName: "Alice"
+	},
+	{
+		id: 2,
+		trackingNumber: "TMOF-0002",
+		distance: 0,
+		price: 150,
+		status: "AWAITING_COLLECTION",
+		pickupAddress: "789 Pine Rd, Pretoria",
+		deliveryAddress: "321 Maple Dr, Centurion",
+		recipientName: "Bob",
+		recipientPhone: "+27 98 765 4321",
+		serviceType: "same_day",
+		createdAt: new Date().toISOString(),
+		customerName: "Bob"
+	},
+	{
+		id: 3,
+		trackingNumber: "TMOF-0003",
+		distance: 0,
+		price: 200,
+		status: "IN_TRANSIT",
+		pickupAddress: "12 Loop St, JHB CBD",
+		deliveryAddress: "99 Main Rd, Midrand",
+		recipientName: "Sam",
+		recipientPhone: "+27 11 222 3333",
+		serviceType: "instant",
+		createdAt: new Date().toISOString(),
+		customerName: "Sam"
+	},
+	{
+		id: 4,
+		trackingNumber: "TMOF-0004",
+		distance: 0,
+		price: 120,
+		status: "DELIVERED",
+		pickupAddress: "1 First Ave, Sandton",
+		deliveryAddress: "2 Second Ave, Sandton",
+		recipientName: "Lebo",
+		recipientPhone: "+27 11 444 5555",
+		serviceType: "standard",
+		createdAt: new Date().toISOString(),
+		customerName: "Lebo"
+	},
+	{
+		id: 5,
+		trackingNumber: "TMOF-0005",
+		distance: 0,
+		price: 90,
+		status: "CANCELLED",
+		pickupAddress: "5 Cancel St, JHB",
+		deliveryAddress: "6 Cancel Ave, JHB",
+		recipientName: "Zanele",
+		recipientPhone: "+27 11 555 6666",
+		serviceType: "swift_errand",
+		createdAt: new Date().toISOString(),
+		customerName: "Zanele"
+	}
 ];
 
 const AdminDashboard = () => {
-	const [activeOrders, setActiveOrders] = useState(2);
-	const [availableDrivers, setAvailableDrivers] = useState(mockDrivers);
-	const [pendingOrders, setPendingOrders] = useState(mockOrders);
-	const [newOrderData, setNewOrderData] = useState({
-		customer_name: '',
-		customer_email: '',
-		customer_phone: '',
-		recipient_name: '',
-		recipient_phone: '',
-		pickup_address: '',
-		dropoff_address: '',
-		service_type: 'standard',
-		package_details: '',
-		special_instructions: ''
-	});
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [drivers, setDrivers] = useState(mockDrivers);
+  const [activeTab, setActiveTab] = useState("order-management");
+  const [assignModal, setAssignModal] = useState<{ open: boolean; order: Order | null }>({ open: false, order: null });
 
-	// Mock create order
-	const createManualOrder = () => {
-		setPendingOrders([
-			...pendingOrders,
-			{
-				id: (pendingOrders.length + 1).toString(),
-				customer_name: newOrderData.customer_name,
-				customer_email: newOrderData.customer_email,
-				customer_phone: newOrderData.customer_phone,
-				pickup_address: newOrderData.pickup_address,
-				dropoff_address: newOrderData.dropoff_address,
-				service_type: newOrderData.service_type,
-				order_status: 'created',
-				quotation: 100,
-				tracking_id: `TMOF-000${pendingOrders.length + 1}`,
-				created_at: new Date().toISOString()
-			}
-		]);
-		setNewOrderData({
-			customer_name: '',
-			customer_email: '',
-			customer_phone: '',
-			recipient_name: '',
-			recipient_phone: '',
-			pickup_address: '',
-			dropoff_address: '',
-			service_type: 'standard',
-			package_details: '',
-			special_instructions: ''
-		});
-	};
+  // --- Statistics ---
+  const stats = {
+    awaiting: orders.filter(o => o.status === "AWAITING_COLLECTION").length,
+    inTransit: orders.filter(o => o.status === "IN_TRANSIT").length,
+    delivered: orders.filter(o => o.status === "DELIVERED").length,
+    cancelled: orders.filter(o => o.status === "CANCELLED").length,
+  };
 
-	// Mock assign order
-	const assignOrderToDriver = (orderId: string, driverId: string) => {
-		setPendingOrders(pendingOrders.map(order =>
-			order.id === orderId ? { ...order, order_status: 'assigned', assigned_driver_id: driverId } : order
-		));
-	};
 
-	return (
+	// --- Find Closest Driver (mock: random for now) ---
+	function getClosestDriver(order: Order) {
+		// In real use, calculate distance from order.pickupAddress to driver lat/lng
+		// For now, just return the first driver
+		return drivers[0];
+	}
+
+	// Show modal with sorted drivers (mock: all drivers)
+	const [modalOrder, setModalOrder] = useState<Order | null>(null);
+	const openAssignModal = (order: Order) => setModalOrder(order);
+	const closeAssignModal = () => setModalOrder(null);
+
+  return (
 		<div className="p-6 space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
@@ -89,265 +165,151 @@ const AdminDashboard = () => {
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Active Orders</CardTitle>
-						<Package className="h-4 w-4 text-muted-foreground" />
+						<CardTitle className="text-sm font-medium">Orders Awaiting Collection</CardTitle>
+						<AlertTriangle className="h-4 w-4 text-yellow-500" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{activeOrders}</div>
-						<p className="text-xs text-muted-foreground">Currently processing</p>
+						<div className="text-2xl font-bold">{stats.awaiting}</div>
+						<p className="text-xs text-muted-foreground">Ready for pickup</p>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Available Drivers</CardTitle>
-						<Users className="h-4 w-4 text-muted-foreground" />
+						<CardTitle className="text-sm font-medium">Orders In-transit</CardTitle>
+						<Truck className="h-4 w-4 text-orange-500" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{availableDrivers.length}</div>
-						<p className="text-xs text-muted-foreground">Ready for assignments</p>
+						<div className="text-2xl font-bold">{stats.inTransit}</div>
+						<p className="text-xs text-muted-foreground">On the road</p>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-						<AlertTriangle className="h-4 w-4 text-muted-foreground" />
+						<CardTitle className="text-sm font-medium">Orders Delivered</CardTitle>
+						<CheckCircle2 className="h-4 w-4 text-green-600" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{pendingOrders.length}</div>
-						<p className="text-xs text-muted-foreground">Awaiting assignment</p>
+						<div className="text-2xl font-bold">{stats.delivered}</div>
+						<p className="text-xs text-muted-foreground">Delivered successfully</p>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">System Status</CardTitle>
-						<Shield className="h-4 w-4 text-muted-foreground" />
+						<CardTitle className="text-sm font-medium">Orders Cancelled</CardTitle>
+						<XCircle className="h-4 w-4 text-red-600" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-green-600">Online</div>
-						<p className="text-xs text-muted-foreground">All systems operational</p>
+						<div className="text-2xl font-bold">{stats.cancelled}</div>
+						<p className="text-xs text-muted-foreground">Order cancelled</p>
 					</CardContent>
 				</Card>
 			</div>
-			<Tabs defaultValue="orders" className="space-y-6">
-				<TabsList className="grid w-full grid-cols-4">
-					<TabsTrigger value="orders" className="flex items-center gap-2">
+			<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+				<TabsList className="grid w-full grid-cols-3">
+					<TabsTrigger value="order-management" className="flex items-center gap-2">
 						<Package className="h-4 w-4" />
 						Order Management
 					</TabsTrigger>
-					<TabsTrigger value="create-order" className="flex items-center gap-2">
-						<Plus className="h-4 w-4" />
-						Create Order
-					</TabsTrigger>
-					<TabsTrigger value="assignments" className="flex items-center gap-2">
+					<TabsTrigger value="assigned-orders" className="flex items-center gap-2">
 						<Users className="h-4 w-4" />
-						Driver Assignment
+						Assigned Orders
 					</TabsTrigger>
-					<TabsTrigger value="tracking" className="flex items-center gap-2">
+					<TabsTrigger value="live-tracking" className="flex items-center gap-2">
 						<MapPin className="h-4 w-4" />
 						Live Tracking
 					</TabsTrigger>
 				</TabsList>
-				<TabsContent value="orders">
-					<Card>
-						<CardHeader>
-							<CardTitle>Pending Orders</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
-								{pendingOrders.length === 0 ? (
-									<div className="text-center py-8 text-muted-foreground">
-										<Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-										<p>No pending orders</p>
-									</div>
-								) : (
-									pendingOrders.map((order) => (
-										<div key={order.id} className="border rounded-lg p-4 space-y-3">
-											<div className="flex justify-between items-start">
-												<div>
-													<h3 className="font-semibold">Order #{order.tracking_id}</h3>
-													<p className="text-sm text-muted-foreground">
-														Customer: {order.customer_name} ({order.customer_phone})
-													</p>
-												</div>
-												<span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
-													{order.order_status?.toUpperCase()}
-												</span>
-											</div>
-											<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-												<div>
-													<p className="font-medium">Pickup:</p>
-													<p className="text-muted-foreground">{order.pickup_address}</p>
-												</div>
-												<div>
-													<p className="font-medium">Delivery:</p>
-													<p className="text-muted-foreground">{order.dropoff_address}</p>
-												</div>
-											</div>
-											<div className="flex items-center justify-between">
-												<div className="text-sm">
-													<span className="font-medium">Service:</span> {order.service_type}
-													<span className="ml-4 font-medium">Amount:</span> R {order.quotation}
-												</div>
-												<div className="flex space-x-2">
-													<Select onValueChange={(driverId) => assignOrderToDriver(order.id, driverId)}>
-														<SelectTrigger className="w-48">
-															<SelectValue placeholder="Assign to driver" />
-														</SelectTrigger>
-														<SelectContent>
-															{availableDrivers.map((driver) => (
-																<SelectItem key={driver.id} value={driver.id}>
-																	{driver.name} - {driver.phone}
-																</SelectItem>
-															))}
-														</SelectContent>
-													</Select>
-												</div>
-											</div>
+				{/* Order Management Tab */}
+					<TabsContent value="order-management">
+						<Card>
+							<CardHeader>
+								<CardTitle>Orders Awaiting Collection</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="space-y-4">
+									{orders.filter(o => o.status === "AWAITING_COLLECTION").length === 0 ? (
+										<div className="text-center py-8 text-muted-foreground">
+											<Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+											<p>No orders awaiting collection</p>
 										</div>
-									))
-								)}
-							</div>
-						</CardContent>
-					</Card>
-				</TabsContent>
-				<TabsContent value="create-order">
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Phone className="h-5 w-5" />
-								Create Order (Phone/WhatsApp Request)
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div className="space-y-4">
-									<h3 className="font-semibold">Customer Information</h3>
-									<div className="space-y-2">
-										<Label htmlFor="customer_name">Customer Name</Label>
-										<Input
-											id="customer_name"
-											value={newOrderData.customer_name}
-											onChange={(e) => setNewOrderData({...newOrderData, customer_name: e.target.value})}
-											placeholder="Enter customer name"
-											required
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="customer_phone">Customer Phone</Label>
-										<Input
-											id="customer_phone"
-											value={newOrderData.customer_phone}
-											onChange={(e) => setNewOrderData({...newOrderData, customer_phone: e.target.value})}
-											placeholder="+27 12 345 6789"
-											required
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="customer_email">Customer Email</Label>
-										<Input
-											id="customer_email"
-											type="email"
-											value={newOrderData.customer_email}
-											onChange={(e) => setNewOrderData({...newOrderData, customer_email: e.target.value})}
-											placeholder="customer@email.com"
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="recipient_name">Recipient Name</Label>
-										<Input
-											id="recipient_name"
-											value={newOrderData.recipient_name}
-											onChange={(e) => setNewOrderData({...newOrderData, recipient_name: e.target.value})}
-											placeholder="Enter recipient name"
-											required
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="recipient_phone">Recipient Phone</Label>
-										<Input
-											id="recipient_phone"
-											value={newOrderData.recipient_phone}
-											onChange={(e) => setNewOrderData({...newOrderData, recipient_phone: e.target.value})}
-											placeholder="+27 12 345 6789"
-											required
-										/>
-									</div>
+									) : (
+										orders.filter(o => o.status === "AWAITING_COLLECTION").map(order => {
+											const closestDriver = getClosestDriver(order);
+											return (
+												<div key={order.id} className="border rounded-lg p-4 space-y-3">
+													<div className="flex justify-between items-start">
+														<div>
+															<h3 className="font-semibold">Order #{order.trackingNumber}</h3>
+															<p className="text-sm text-muted-foreground">
+																Customer: {order.customerName} ({order.recipientPhone})
+															</p>
+														</div>
+														<span className={`px-2 py-1 text-xs rounded ${getStatusBadgeColor(order.status)}`}>
+															{order.status}
+														</span>
+													</div>
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+														<div>
+															<p className="font-medium">Pickup:</p>
+															<p className="text-muted-foreground">{order.pickupAddress}</p>
+														</div>
+														<div>
+															<p className="font-medium">Delivery:</p>
+															<p className="text-muted-foreground">{order.deliveryAddress}</p>
+														</div>
+													</div>
+													<div className="flex items-center justify-between">
+														<div className="text-sm">
+															<span className="font-medium">Service:</span> {order.serviceType}
+															<span className="ml-4 font-medium">Amount:</span> R {order.price}
+														</div>
+													</div>
+													<div className="flex items-center justify-between mt-2">
+														<div className="text-xs text-muted-foreground">
+															Closest driver: <span className="font-semibold text-black">{closestDriver?.name}</span>
+														</div>
+														<Button size="sm" onClick={() => openAssignModal(order)}>
+															Assign to driver
+														</Button>
+													</div>
+												</div>
+											);
+										})
+									)}
 								</div>
-								<div className="space-y-4">
-									<h3 className="font-semibold">Delivery Information</h3>
-									<div className="space-y-2">
-										<Label htmlFor="pickup_address">Pickup Address</Label>
-										<Textarea
-											id="pickup_address"
-											value={newOrderData.pickup_address}
-											onChange={(e) => setNewOrderData({...newOrderData, pickup_address: e.target.value})}
-											placeholder="Enter full pickup address"
-											required
-										/>
+							</CardContent>
+						</Card>
+						{/* Assignment Modal */}
+						{modalOrder && (
+							<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+								<div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg">
+									<h3 className="text-lg font-bold mb-4">Assign Order #{modalOrder.trackingNumber}</h3>
+									<div className="mb-4">
+										<p className="mb-2 text-sm">Select a driver to assign (sorted by proximity):</p>
+										<ul className="divide-y">
+											{drivers.map(driver => (
+												<li key={driver.id} className="py-2 flex items-center justify-between">
+													<span>{driver.name} <span className="ml-2 text-xs text-muted-foreground">({driver.phone})</span></span>
+													<Button size="sm" variant="outline" disabled>Assign</Button>
+												</li>
+											))}
+										</ul>
 									</div>
-									<div className="space-y-2">
-										<Label htmlFor="dropoff_address">Delivery Address</Label>
-										<Textarea
-											id="dropoff_address"
-											value={newOrderData.dropoff_address}
-											onChange={(e) => setNewOrderData({...newOrderData, dropoff_address: e.target.value})}
-											placeholder="Enter full delivery address"
-											required
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="service_type">Service Type</Label>
-										<Select
-											value={newOrderData.service_type}
-											onValueChange={(value) => setNewOrderData({...newOrderData, service_type: value})}
-										>
-											<SelectTrigger>
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="standard">Standard Delivery</SelectItem>
-												<SelectItem value="same_day">Same-Day Delivery</SelectItem>
-												<SelectItem value="instant">Instant Delivery</SelectItem>
-												<SelectItem value="swift_errand">Swift Errand</SelectItem>
-											</SelectContent>
-										</Select>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="package_details">Package Details</Label>
-										<Input
-											id="package_details"
-											value={newOrderData.package_details}
-											onChange={(e) => setNewOrderData({...newOrderData, package_details: e.target.value})}
-											placeholder="Describe the package"
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="special_instructions">Special Instructions</Label>
-										<Textarea
-											id="special_instructions"
-											value={newOrderData.special_instructions}
-											onChange={(e) => setNewOrderData({...newOrderData, special_instructions: e.target.value})}
-											placeholder="Any special delivery instructions"
-										/>
-									</div>
+									<Button onClick={closeAssignModal} variant="outline">Close</Button>
 								</div>
 							</div>
-							<div className="mt-6 flex justify-end">
-								<Button onClick={createManualOrder} className="bg-blue-600 hover:bg-blue-700">
-									Create Order
-								</Button>
-							</div>
-						</CardContent>
-					</Card>
-				</TabsContent>
-				<TabsContent value="assignments">
+						)}
+					</TabsContent>
+				{/* Assigned Orders Tab */}
+				<TabsContent value="assigned-orders">
 					<Card>
 						<CardHeader>
-							<CardTitle>Available Drivers</CardTitle>
+							<CardTitle>Assigned Orders by Driver</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-								{availableDrivers.map((driver) => (
+							<div className="space-y-6">
+								{/* For now, just show drivers and stubbed assigned orders */}
+								{drivers.map(driver => (
 									<div key={driver.id} className="border rounded-lg p-4">
 										<div className="flex items-center justify-between mb-2">
 											<h3 className="font-semibold">{driver.name}</h3>
@@ -355,24 +317,51 @@ const AdminDashboard = () => {
 												{driver.status.toUpperCase()}
 											</span>
 										</div>
-										<p className="text-sm text-muted-foreground mb-1">{driver.email}</p>
-										<p className="text-sm text-muted-foreground">{driver.phone}</p>
+										<div className="space-y-2">
+											{/* Show assigned orders for this driver (stub) */}
+											<p className="text-sm text-muted-foreground">No assigned orders yet.</p>
+										</div>
 									</div>
 								))}
 							</div>
 						</CardContent>
 					</Card>
 				</TabsContent>
-				<TabsContent value="tracking">
+				{/* Live Tracking Tab */}
+				<TabsContent value="live-tracking">
 					<Card>
 						<CardHeader>
-							<CardTitle>Live Driver Tracking</CardTitle>
+							<CardTitle>Live Tracking (In-Transit Orders)</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-center py-8 text-muted-foreground">
-								<MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-								<p>Real-time driver tracking will be displayed here</p>
-								<p className="text-sm">Integration with Google Maps for live location updates</p>
+							<div className="space-y-4">
+								{orders.filter(o => o.status === "IN_TRANSIT").length === 0 ? (
+									<div className="text-center py-8 text-muted-foreground">
+										<MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+										<p>No orders in transit</p>
+									</div>
+								) : (
+									orders.filter(o => o.status === "IN_TRANSIT").map(order => (
+										<div key={order.id} className="border rounded-lg p-4">
+											<div className="flex justify-between items-center">
+												<div>
+													<h3 className="font-semibold">Order #{order.trackingNumber}</h3>
+													<p className="text-sm text-muted-foreground">{order.pickupAddress} → {order.deliveryAddress}</p>
+												</div>
+												<span className={`px-2 py-1 text-xs rounded ${getStatusBadgeColor(order.status)}`}>
+													{order.status}
+												</span>
+											</div>
+											<div className="mt-2 text-sm">
+												<span className="font-medium">Recipient:</span> {order.recipientName} ({order.recipientPhone})
+											</div>
+											<div className="mt-1 text-sm">
+												<span className="font-medium">Service:</span> {order.serviceType} | <span className="font-medium">Amount:</span> R {order.price}
+											</div>
+											<div className="mt-2 text-xs text-muted-foreground">Live tracking map will be shown here.</div>
+										</div>
+									))
+								)}
 							</div>
 						</CardContent>
 					</Card>

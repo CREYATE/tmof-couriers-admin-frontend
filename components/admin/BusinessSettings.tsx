@@ -58,8 +58,9 @@ const BusinessSettings = () => {
   const resetToDefaults = () => {};
 
   return (
-    <div className="space-y-6">
-      {/* Company Information */}
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold mt-6 mb-2">Settings</h2>
+      <div className="mt-6" />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
