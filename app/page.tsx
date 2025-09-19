@@ -1,5 +1,5 @@
 import AuthLayout from "@/components/auth/AuthLayout";
-import AdminLoginForm from "@/components/auth/AdminLoginForm";
+import AdminLoginForm from "@/components/admin/AdminLoginForm";
 
 export default function Home() {
   return (
