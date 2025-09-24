@@ -1,6 +1,8 @@
 import { Client, IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
+export { Client }; // Export the Client type
+
 let client: Client | null = null;
 
 export const initializeWebSocket = (): Client => {
