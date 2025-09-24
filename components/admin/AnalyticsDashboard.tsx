@@ -488,23 +488,26 @@ const AnalyticsDashboard = () => {
                 </Card>
               </TabsContent>
               <TabsContent value="performance" className="space-y-4">
-                <Card>
+                <Card className="opacity-50">
                   <CardHeader>
-                    <CardTitle>Performance Insights</CardTitle>
+                    <CardTitle className="text-gray-400">Performance Insights</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span>Driver Performance</span>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg opacity-60">
+                        <span className="text-gray-400">Driver Performance</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{analyticsData.drivers.performance.toFixed(1)}%</span>
+                          <span className="font-medium text-gray-400">{analyticsData.drivers.performance.toFixed(1)}%</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span>Customer Satisfaction</span>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg opacity-60">
+                        <span className="text-gray-400">Customer Satisfaction</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{analyticsData.performance.customerRating}/5</span>
+                          <span className="font-medium text-gray-400">{analyticsData.performance.customerRating}/5</span>
                         </div>
+                      </div>
+                      <div className="flex items-center justify-center mt-6">
+                        <div className="text-sm text-gray-400 text-center">Feature under construction</div>
                       </div>
                     </div>
                   </CardContent>
@@ -516,23 +519,103 @@ const AnalyticsDashboard = () => {
                     <CardTitle>Revenue Analysis</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="text-center">
-                          <div className="text-lg font-semibold">Today</div>
-                          <div className="text-2xl font-bold text-green-600">{formatCurrency(analyticsData.revenue.today)}</div>
+                    <div className="space-y-6">
+                      {/* Revenue Chart Visualization */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold">Revenue Breakdown</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                            <div className="text-center">
+                              <div className="text-lg font-semibold text-green-700">Today</div>
+                              <div className="text-3xl font-bold text-green-600 my-2">{formatCurrency(analyticsData.revenue.today)}</div>
+                              <div className="h-2 bg-green-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-green-500 transition-all duration-300"
+                                  style={{ width: `${analyticsData.revenue.total > 0 ? (analyticsData.revenue.today / analyticsData.revenue.total * 100) : 0}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                            <div className="text-center">
+                              <div className="text-lg font-semibold text-blue-700">This Week</div>
+                              <div className="text-3xl font-bold text-blue-600 my-2">{formatCurrency(analyticsData.revenue.thisWeek)}</div>
+                              <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-500 transition-all duration-300"
+                                  style={{ width: `${analyticsData.revenue.total > 0 ? (analyticsData.revenue.thisWeek / analyticsData.revenue.total * 100) : 0}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                            <div className="text-center">
+                              <div className="text-lg font-semibold text-purple-700">This Month</div>
+                              <div className="text-3xl font-bold text-purple-600 my-2">{formatCurrency(analyticsData.revenue.thisMonth)}</div>
+                              <div className="h-2 bg-purple-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-purple-500 transition-all duration-300"
+                                  style={{ width: `${analyticsData.revenue.total > 0 ? (analyticsData.revenue.thisMonth / analyticsData.revenue.total * 100) : 0}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+                            <div className="text-center">
+                              <div className="text-lg font-semibold text-orange-700">Average Order</div>
+                              <div className="text-3xl font-bold text-orange-600 my-2">{formatCurrency(analyticsData.revenue.average)}</div>
+                              <div className="h-2 bg-orange-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-orange-500 transition-all duration-300"
+                                  style={{ width: "100%" }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-lg font-semibold">This Week</div>
-                          <div className="text-2xl font-bold text-blue-600">{formatCurrency(analyticsData.revenue.thisWeek)}</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-semibold">This Month</div>
-                          <div className="text-2xl font-bold text-purple-600">{formatCurrency(analyticsData.revenue.thisMonth)}</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-semibold">Average Order</div>
-                          <div className="text-2xl font-bold text-orange-600">{formatCurrency(analyticsData.revenue.average)}</div>
+                      </div>
+                      
+                      {/* Revenue Summary Chart */}
+                      <div className="bg-gray-50 p-6 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-4">Revenue Distribution</h3>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Total Revenue</span>
+                            <span className="text-lg font-bold">{formatCurrency(analyticsData.revenue.total)}</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div className="flex h-full">
+                              <div 
+                                className="bg-green-500 h-full" 
+                                style={{ width: `${analyticsData.revenue.total > 0 ? (analyticsData.revenue.today / analyticsData.revenue.total * 100) : 0}%` }}
+                                title={`Today: ${formatCurrency(analyticsData.revenue.today)}`}
+                              ></div>
+                              <div 
+                                className="bg-blue-500 h-full" 
+                                style={{ width: `${analyticsData.revenue.total > 0 ? ((analyticsData.revenue.thisWeek - analyticsData.revenue.today) / analyticsData.revenue.total * 100) : 0}%` }}
+                                title={`This Week (excluding today): ${formatCurrency(analyticsData.revenue.thisWeek - analyticsData.revenue.today)}`}
+                              ></div>
+                              <div 
+                                className="bg-purple-500 h-full" 
+                                style={{ width: `${analyticsData.revenue.total > 0 ? ((analyticsData.revenue.thisMonth - analyticsData.revenue.thisWeek) / analyticsData.revenue.total * 100) : 0}%` }}
+                                title={`This Month (excluding this week): ${formatCurrency(analyticsData.revenue.thisMonth - analyticsData.revenue.thisWeek)}`}
+                              ></div>
+                              <div 
+                                className="bg-gray-400 h-full" 
+                                style={{ width: `${analyticsData.revenue.total > 0 ? ((analyticsData.revenue.total - analyticsData.revenue.thisMonth) / analyticsData.revenue.total * 100) : 0}%` }}
+                                title={`Previous months: ${formatCurrency(analyticsData.revenue.total - analyticsData.revenue.thisMonth)}`}
+                              ></div>
+                            </div>
+                          </div>
+                          <div className="flex justify-between text-xs text-gray-600 mt-2">
+                            <span>• Today ({((analyticsData.revenue.today / analyticsData.revenue.total) * 100 || 0).toFixed(1)}%)</span>
+                            <span>• This Week ({(((analyticsData.revenue.thisWeek - analyticsData.revenue.today) / analyticsData.revenue.total) * 100 || 0).toFixed(1)}%)</span>
+                            <span>• This Month ({(((analyticsData.revenue.thisMonth - analyticsData.revenue.thisWeek) / analyticsData.revenue.total) * 100 || 0).toFixed(1)}%)</span>
+                            <span>• Previous ({(((analyticsData.revenue.total - analyticsData.revenue.thisMonth) / analyticsData.revenue.total) * 100 || 0).toFixed(1)}%)</span>
+                          </div>
                         </div>
                       </div>
                     </div>
