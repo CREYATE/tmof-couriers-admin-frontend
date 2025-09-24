@@ -36,11 +36,13 @@ export default function DriverManagement() {
     license: null as File | null,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDrivers, setIsLoadingDrivers] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch drivers from backend
   useEffect(() => {
     const fetchDrivers = async () => {
+      setIsLoadingDrivers(true);
       try {
         const response = await axios.get<Driver[]>("http://localhost:8080/api/admin/drivers", {
           headers: { Authorization: `Bearer ${localStorage.getItem("jwt")}` },
@@ -49,6 +51,8 @@ export default function DriverManagement() {
       } catch (error: any) {
         console.error("Failed to fetch drivers:", error);
         toast.error("Failed to load drivers");
+      } finally {
+        setIsLoadingDrivers(false);
       }
     };
     fetchDrivers();
@@ -144,6 +148,7 @@ export default function DriverManagement() {
 
   return (
     <div className="space-y-8">
+      <TmofSpinner show={isLoadingDrivers} />
       <div className="flex justify-between items-center mt-6 mb-2">
         <h2 className="text-2xl font-bold">Driver Management & Onboarding</h2>
         <Button onClick={() => setShowOnboard(true)} className="bg-tmof-yellow text-black flex items-center gap-2 mt-2">

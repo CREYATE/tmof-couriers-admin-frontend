@@ -19,7 +19,7 @@ const menuItems = [
 	{ label: "Access Logs", tab: "access-logs", icon: BookOpen },
 	{ label: "Pricing", tab: "pricing", icon: DollarSign },
 	{ label: "Support", tab: "support", icon: Headphones },
-	{ label: "Settings", tab: "settings", icon: Settings },
+	// { label: "Settings", tab: "settings", icon: Settings },
 ];
 
 export default function AdminSidebar({

@@ -7,6 +7,7 @@ import { Package, Users, AlertTriangle, Truck, CheckCircle2, XCircle, MapPin } f
 import { initializeWebSocket, subscribeToTopic, disconnectWebSocket } from "@/lib/websocket";
 import { Client } from "@stomp/stompjs";
 import { Order, Driver, OrderCounts } from "@/lib/types";
+import TmofSpinner from "@/components/ui/TmofSpinner";
 
 const getStatusBadgeColor = (status: string) => {
   switch (status) {
@@ -263,6 +264,7 @@ const AdminDashboard = () => {
 
   const openAssignModal = (order: Order) => setModalOrder(order);
   const closeAssignModal = () => setModalOrder(null);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   const awaitingOrders = orders.filter((o) => o.status === "PAID" || o.status === "AWAITING_COLLECTION");
   const inTransitOrders = orders.filter((o) => o.status === "IN_TRANSIT");
@@ -271,10 +273,13 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
+      <TmofSpinner show={isLoading} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-gray-500 mt-1">TMOF Couriers Administration Panel</p>
+          <h1 className="text-3xl font-bold">Operations Dashboard</h1>
+          <p className="text-gray-600">Last updated: {lastUpdated.toLocaleTimeString()}</p>
+
+          {/* <p className="text-gray-500 mt-1">TMOF Couriers Administration Panel</p> */}
         </div>
       </div>
 

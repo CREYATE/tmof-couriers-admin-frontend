@@ -33,7 +33,9 @@ type AnalyticsData = {
     today: number;
     thisWeek: number;
     thisMonth: number;
+    previousMonth: number;
     average: number;
+    dailyData: { day: number; current: number; previous: number }[];
   };
   drivers: {
     total: number;
@@ -155,6 +157,8 @@ const AnalyticsDashboard = () => {
       startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
       // Calculate orders data
       const ordersCalc = {
@@ -174,17 +178,48 @@ const AnalyticsDashboard = () => {
         today: 0,
         thisWeek: 0,
         thisMonth: 0,
-        average: 0
+        previousMonth: 0,
+        average: 0,
+        dailyData: [] as { day: number; current: number; previous: number }[]
       };
+
+      // Create daily data structure for chart
+      const daysInCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const daysInPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      const maxDays = Math.max(daysInCurrentMonth, daysInPreviousMonth);
+      
+      // Initialize daily data array
+      for (let i = 1; i <= maxDays; i++) {
+        revenueCalc.dailyData.push({ day: i, current: 0, previous: 0 });
+      }
 
       transactions.forEach((t: Transaction) => {
         if (t.status !== 'success' || t.currency !== 'ZAR') return;
         const amt: number = t.amount / 100;
-        revenueCalc.total += amt;
         const created: Date = new Date(t.created_at);
+        
+        revenueCalc.total += amt;
+        
         if (created >= startOfToday) revenueCalc.today += amt;
         if (created >= startOfWeek) revenueCalc.thisWeek += amt;
-        if (created >= startOfMonth) revenueCalc.thisMonth += amt;
+        
+        // Current month revenue and daily breakdown
+        if (created >= startOfMonth) {
+          revenueCalc.thisMonth += amt;
+          const dayOfMonth = created.getDate();
+          if (dayOfMonth <= maxDays) {
+            revenueCalc.dailyData[dayOfMonth - 1].current += amt;
+          }
+        }
+        
+        // Previous month revenue and daily breakdown
+        if (created >= startOfPreviousMonth && created <= endOfPreviousMonth) {
+          revenueCalc.previousMonth += amt;
+          const dayOfMonth = created.getDate();
+          if (dayOfMonth <= maxDays) {
+            revenueCalc.dailyData[dayOfMonth - 1].previous += amt;
+          }
+        }
       });
 
       if (ordersCalc.total > 0) {
@@ -235,7 +270,7 @@ const AnalyticsDashboard = () => {
       setError("Failed to load some analytics data. Displaying available data.");
       setAnalyticsData({
         orders: { total: 0, today: 0, thisWeek: 0, thisMonth: 0, pending: 0, inTransit: 0, delivered: 0, failed: 0 },
-        revenue: { total: 0, today: 0, thisWeek: 0, thisMonth: 0, average: 0 },
+        revenue: { total: 0, today: 0, thisWeek: 0, thisMonth: 0, previousMonth: 0, average: 0, dailyData: [] },
         drivers: { total: 0, active: 0, available: 0, onDelivery: 0, performance: 80 },
         customers: { total: 0, newThisMonth: 0, repeatCustomers: 0, satisfaction: 4.2 },
         performance: { averageDeliveryTime: 2.5, onTimeDelivery: 92, customerRating: 4.2, driverEfficiency: 87 },
@@ -516,105 +551,199 @@ const AnalyticsDashboard = () => {
               <TabsContent value="revenue" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Revenue Analysis</CardTitle>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>Revenue Analysis - Daily Comparison Chart</span>
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <div className="w-4 h-0.5 bg-blue-500 rounded"></div>
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          </div>
+                          <span>Current Month ({formatCurrency(analyticsData.revenue.thisMonth)})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <div className="w-4 h-0.5 bg-gray-400 rounded border-dashed border-t"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                          </div>
+                          <span>Previous Month ({formatCurrency(analyticsData.revenue.previousMonth)})</span>
+                        </div>
+                      </div>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
-                      {/* Revenue Chart Visualization */}
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Revenue Breakdown</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-                            <div className="text-center">
-                              <div className="text-lg font-semibold text-green-700">Today</div>
-                              <div className="text-3xl font-bold text-green-600 my-2">{formatCurrency(analyticsData.revenue.today)}</div>
-                              <div className="h-2 bg-green-200 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-green-500 transition-all duration-300"
-                                  style={{ width: `${analyticsData.revenue.total > 0 ? (analyticsData.revenue.today / analyticsData.revenue.total * 100) : 0}%` }}
-                                ></div>
-                              </div>
-                            </div>
+                      {/* Chart Container */}
+                      <div className="w-full h-96 bg-gray-50 rounded-lg p-4">
+                        <div className="h-full relative">
+                          {/* Y-axis label - moved further left */}
+                          <div className="absolute -left-11 top-1/2 -rotate-90 transform -translate-y-1/2 text-sm font-medium text-gray-600">
+                            Revenue (R)
                           </div>
                           
-                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-                            <div className="text-center">
-                              <div className="text-lg font-semibold text-blue-700">This Week</div>
-                              <div className="text-3xl font-bold text-blue-600 my-2">{formatCurrency(analyticsData.revenue.thisWeek)}</div>
-                              <div className="h-2 bg-blue-200 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-blue-500 transition-all duration-300"
-                                  style={{ width: `${analyticsData.revenue.total > 0 ? (analyticsData.revenue.thisWeek / analyticsData.revenue.total * 100) : 0}%` }}
-                                ></div>
-                              </div>
+                          {/* Chart area */}
+                          <div className="ml-16 h-full flex flex-col">
+                            {/* Y-axis values */}
+                            <div className="flex-1 relative">
+                              {/* Get max value for scaling */}
+                              {(() => {
+                                const maxValue = Math.max(
+                                  ...analyticsData.revenue.dailyData.map(d => Math.max(d.current, d.previous)),
+                                  1 // Minimum of 1 to avoid division by zero
+                                );
+                                const yAxisSteps = 5;
+                                const stepValue = maxValue / yAxisSteps;
+                                
+                                return (
+                                  <>
+                                    {/* Y-axis grid lines and labels */}
+                                    {Array.from({ length: yAxisSteps + 1 }, (_, i) => (
+                                      <div
+                                        key={i}
+                                        className="absolute w-full border-t border-gray-200"
+                                        style={{ bottom: `${(i / yAxisSteps) * 100}%` }}
+                                      >
+                                        <span className="absolute -left-12 -mt-2 text-xs text-gray-500">
+                                          {formatCurrency(stepValue * i)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                    
+                                    {/* Line chart with plot points */}
+                                    <div className="absolute bottom-0 w-full h-full">
+                                      {/* Current month line */}
+                                      <svg className="w-full h-full absolute top-0 left-0" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                        {/* Current month line path */}
+                                        <polyline
+                                          fill="none"
+                                          stroke="#3B82F6"
+                                          strokeWidth="0.3"
+                                          points={analyticsData.revenue.dailyData
+                                            .slice(0, Math.min(31, analyticsData.revenue.dailyData.length))
+                                            .map((dayData, index) => {
+                                              const x = (index / (Math.min(31, analyticsData.revenue.dailyData.length) - 1)) * 100;
+                                              const y = 100 - (maxValue > 0 ? (dayData.current / maxValue) * 100 : 0);
+                                              return `${x},${y}`;
+                                            })
+                                            .join(' ')}
+                                        />
+                                        
+                                        {/* Previous month line path */}
+                                        <polyline
+                                          fill="none"
+                                          stroke="#9CA3AF"
+                                          strokeWidth="0.3"
+                                          strokeDasharray="1,1"
+                                          points={analyticsData.revenue.dailyData
+                                            .slice(0, Math.min(31, analyticsData.revenue.dailyData.length))
+                                            .map((dayData, index) => {
+                                              const x = (index / (Math.min(31, analyticsData.revenue.dailyData.length) - 1)) * 100;
+                                              const y = 100 - (maxValue > 0 ? (dayData.previous / maxValue) * 100 : 0);
+                                              return `${x},${y}`;
+                                            })
+                                            .join(' ')}
+                                        />
+                                      </svg>
+                                      
+                                      {/* Plot points overlay */}
+                                      <div className="absolute bottom-0 w-full h-full flex items-end justify-between px-2">
+                                        {analyticsData.revenue.dailyData.slice(0, Math.min(31, analyticsData.revenue.dailyData.length)).map((dayData, index) => (
+                                          <div key={dayData.day} className="flex flex-col items-center flex-1 min-w-0 relative group">
+                                            {/* Enhanced tooltip on hover */}
+                                            <div className="absolute bottom-full mb-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-20 shadow-lg">
+                                              <div className="font-semibold">Day {dayData.day}</div>
+                                              <div className="text-blue-300">Current: {formatCurrency(dayData.current)}</div>
+                                              <div className="text-gray-300">Previous: {formatCurrency(dayData.previous)}</div>
+                                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+                                            </div>
+                                            
+                                            {/* Plot points container */}
+                                            <div className="relative w-full h-full flex flex-col justify-end items-center">
+                                              {/* Current month plot point */}
+                                              <div
+                                                className="absolute w-2 h-2 bg-blue-500 rounded-full border-2 border-white shadow-lg hover:scale-150 transition-transform duration-200 z-10"
+                                                style={{
+                                                  bottom: `${maxValue > 0 ? (dayData.current / maxValue) * 100 : 0}%`,
+                                                  transform: 'translateY(50%)'
+                                                }}
+                                              />
+                                              
+                                              {/* Previous month plot point */}
+                                              <div
+                                                className="absolute w-2 h-2 bg-gray-400 rounded-full border-2 border-white shadow-lg hover:scale-150 transition-transform duration-200 z-10"
+                                                style={{
+                                                  bottom: `${maxValue > 0 ? (dayData.previous / maxValue) * 100 : 0}%`,
+                                                  transform: 'translateY(50%)'
+                                                }}
+                                              />
+                                              
+                                              {/* Invisible hover area */}
+                                              <div className="absolute inset-0 cursor-pointer"></div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
-                          </div>
-                          
-                          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-                            <div className="text-center">
-                              <div className="text-lg font-semibold text-purple-700">This Month</div>
-                              <div className="text-3xl font-bold text-purple-600 my-2">{formatCurrency(analyticsData.revenue.thisMonth)}</div>
-                              <div className="h-2 bg-purple-200 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-purple-500 transition-all duration-300"
-                                  style={{ width: `${analyticsData.revenue.total > 0 ? (analyticsData.revenue.thisMonth / analyticsData.revenue.total * 100) : 0}%` }}
-                                ></div>
-                              </div>
+                            
+                            {/* X-axis */}
+                            <div className="h-8 border-t border-gray-300 flex items-center justify-between px-2 mt-2">
+                              {/* X-axis labels - show every 5th day */}
+                              {analyticsData.revenue.dailyData.slice(0, Math.min(31, analyticsData.revenue.dailyData.length)).map((dayData, index) => (
+                                <div key={dayData.day} className="flex-1 text-center">
+                                  {index % 5 === 0 || index === analyticsData.revenue.dailyData.length - 1 ? (
+                                    <span className="text-xs text-gray-500">{dayData.day}</span>
+                                  ) : null}
+                                </div>
+                              ))}
                             </div>
-                          </div>
-                          
-                          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
-                            <div className="text-center">
-                              <div className="text-lg font-semibold text-orange-700">Average Order</div>
-                              <div className="text-3xl font-bold text-orange-600 my-2">{formatCurrency(analyticsData.revenue.average)}</div>
-                              <div className="h-2 bg-orange-200 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-orange-500 transition-all duration-300"
-                                  style={{ width: "100%" }}
-                                ></div>
-                              </div>
+                            
+                            {/* X-axis label */}
+                            <div className="text-center text-sm font-medium text-gray-600 mt-2">
+                              Day of Month
                             </div>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Revenue Summary Chart */}
-                      <div className="bg-gray-50 p-6 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-4">Revenue Distribution</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Total Revenue</span>
-                            <span className="text-lg font-bold">{formatCurrency(analyticsData.revenue.total)}</span>
+                      {/* Summary Statistics */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <h4 className="text-lg font-semibold text-blue-700">Current Month</h4>
+                          <div className="text-2xl font-bold text-blue-600">{formatCurrency(analyticsData.revenue.thisMonth)}</div>
+                          <div className="text-sm text-blue-600">
+                            {analyticsData.revenue.previousMonth > 0 ? (
+                              <span>
+                                {analyticsData.revenue.thisMonth > analyticsData.revenue.previousMonth ? '↗️' : '↘️'}
+                                {' '}
+                                {(((analyticsData.revenue.thisMonth - analyticsData.revenue.previousMonth) / analyticsData.revenue.previousMonth) * 100).toFixed(1)}%
+                                {' vs previous month'}
+                              </span>
+                            ) : (
+                              'No previous month data'
+                            )}
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                            <div className="flex h-full">
-                              <div 
-                                className="bg-green-500 h-full" 
-                                style={{ width: `${analyticsData.revenue.total > 0 ? (analyticsData.revenue.today / analyticsData.revenue.total * 100) : 0}%` }}
-                                title={`Today: ${formatCurrency(analyticsData.revenue.today)}`}
-                              ></div>
-                              <div 
-                                className="bg-blue-500 h-full" 
-                                style={{ width: `${analyticsData.revenue.total > 0 ? ((analyticsData.revenue.thisWeek - analyticsData.revenue.today) / analyticsData.revenue.total * 100) : 0}%` }}
-                                title={`This Week (excluding today): ${formatCurrency(analyticsData.revenue.thisWeek - analyticsData.revenue.today)}`}
-                              ></div>
-                              <div 
-                                className="bg-purple-500 h-full" 
-                                style={{ width: `${analyticsData.revenue.total > 0 ? ((analyticsData.revenue.thisMonth - analyticsData.revenue.thisWeek) / analyticsData.revenue.total * 100) : 0}%` }}
-                                title={`This Month (excluding this week): ${formatCurrency(analyticsData.revenue.thisMonth - analyticsData.revenue.thisWeek)}`}
-                              ></div>
-                              <div 
-                                className="bg-gray-400 h-full" 
-                                style={{ width: `${analyticsData.revenue.total > 0 ? ((analyticsData.revenue.total - analyticsData.revenue.thisMonth) / analyticsData.revenue.total * 100) : 0}%` }}
-                                title={`Previous months: ${formatCurrency(analyticsData.revenue.total - analyticsData.revenue.thisMonth)}`}
-                              ></div>
-                            </div>
+                        </div>
+                        
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <h4 className="text-lg font-semibold text-gray-700">Previous Month</h4>
+                          <div className="text-2xl font-bold text-gray-600">{formatCurrency(analyticsData.revenue.previousMonth)}</div>
+                          <div className="text-sm text-gray-600">
+                            {analyticsData.revenue.previousMonth > 0 ? 'Complete month' : 'No data available'}
                           </div>
-                          <div className="flex justify-between text-xs text-gray-600 mt-2">
-                            <span>• Today ({((analyticsData.revenue.today / analyticsData.revenue.total) * 100 || 0).toFixed(1)}%)</span>
-                            <span>• This Week ({(((analyticsData.revenue.thisWeek - analyticsData.revenue.today) / analyticsData.revenue.total) * 100 || 0).toFixed(1)}%)</span>
-                            <span>• This Month ({(((analyticsData.revenue.thisMonth - analyticsData.revenue.thisWeek) / analyticsData.revenue.total) * 100 || 0).toFixed(1)}%)</span>
-                            <span>• Previous ({(((analyticsData.revenue.total - analyticsData.revenue.thisMonth) / analyticsData.revenue.total) * 100 || 0).toFixed(1)}%)</span>
+                        </div>
+                        
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                          <h4 className="text-lg font-semibold text-green-700">Difference</h4>
+                          <div className="text-2xl font-bold text-green-600">
+                            {formatCurrency(Math.abs(analyticsData.revenue.thisMonth - analyticsData.revenue.previousMonth))}
+                          </div>
+                          <div className="text-sm text-green-600">
+                            {analyticsData.revenue.thisMonth > analyticsData.revenue.previousMonth ? 'Higher' : 'Lower'}
+                            {' than previous month'}
                           </div>
                         </div>
                       </div>
