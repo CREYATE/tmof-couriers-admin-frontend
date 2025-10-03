@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 
 interface Driver {
   id: string;
-  name: string; // Concatenated full name for display
+  name: string;
   email: string;
   phone: string;
   status: string;
@@ -39,12 +39,12 @@ export default function DriverManagement() {
   const [isLoadingDrivers, setIsLoadingDrivers] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch drivers from backend
+  // Fetch drivers from Next.js API route
   useEffect(() => {
     const fetchDrivers = async () => {
       setIsLoadingDrivers(true);
       try {
-        const response = await axios.get<Driver[]>("http://localhost:8080/api/admin/drivers", {
+        const response = await axios.get<Driver[]>("/api/admin/drivers/available", {
           headers: { Authorization: `Bearer ${localStorage.getItem("jwt")}` },
         });
         setDrivers(response.data);
@@ -61,7 +61,7 @@ export default function DriverManagement() {
   const handleDisable = async (id: string) => {
     try {
       await axios.post(
-        "http://localhost:8080/api/admin/disable-driver",
+        "/api/admin/disable-driver",
         { id },
         { headers: { Authorization: `Bearer ${localStorage.getItem("jwt")}` } }
       );
@@ -97,12 +97,11 @@ export default function DriverManagement() {
     if (fileInputRef.current?.files?.[0]) formData.append("profilePic", fileInputRef.current.files[0]);
 
     try {
-      const response = await axios.post<{ id: string }>("http://localhost:8080/api/admin/onboard", formData, {
+      const response = await axios.post<{ id: string }>("/api/admin/onboard", formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("jwt")}`,
         },
       });
-      // Concatenate first and last name for display in driver list
       const fullName = `${onboardData.firstName} ${onboardData.lastName}`;
       setDrivers([...drivers, {
         id: response.data.id,
@@ -176,7 +175,7 @@ export default function DriverManagement() {
                   <th>Email</th>
                   <th>Phone</th>
                   <th>Status</th>
-                  <th className="text-center">Actions</th>
+                  {/* <th className="text-center">Actions</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -195,10 +194,10 @@ export default function DriverManagement() {
                     <td>{driver.email}</td>
                     <td>{driver.phone}</td>
                     <td>{driver.status}</td>
-                    <td className="flex gap-2 justify-center items-center py-2">
+                    {/* <td className="flex gap-2 justify-center items-center py-2">
                       <Button size="sm" variant="outline" onClick={() => handleEdit(driver.id)}><Edit className="h-4 w-4" /></Button>
                       <Button size="sm" variant="destructive" onClick={() => handleDisable(driver.id)}><Ban className="h-4 w-4" /></Button>
-                    </td>
+                    </td> */}
                   </tr>
                 ))}
               </tbody>
@@ -228,7 +227,7 @@ export default function DriverManagement() {
                 <div className="text-xs sm:text-sm space-y-1">
                   <p><span className="font-medium">Phone:</span> {driver.phone}</p>
                 </div>
-                <div className="flex gap-2 pt-2 border-t">
+                {/* <div className="flex gap-2 pt-2 border-t">
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -247,7 +246,7 @@ export default function DriverManagement() {
                     <Ban className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     Disable
                   </Button>
-                </div>
+                </div> */}
               </div>
             ))}
           </div>
