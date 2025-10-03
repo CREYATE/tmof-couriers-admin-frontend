@@ -1,5 +1,4 @@
 import { Client, IMessage } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
 
 export { Client }; // Export the Client type
 
@@ -10,26 +9,44 @@ export const initializeWebSocket = (): Client => {
     return client;
   }
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  // Dynamic secure native WS URL
+  let wsUrl;
+  if (typeof window !== 'undefined') {
+    const isSecure = window.location.protocol === 'https:';
+    const protocol = isSecure ? 'wss' : 'ws';
+    const backendHost = isSecure ? 'tmof-couriers.onrender.com' : 'localhost:8080';
+    wsUrl = `${protocol}://${backendHost}/ws`;
+  } else {
+    // SSR fallback
+    wsUrl = process.env.NEXT_PUBLIC_BACKEND_WS_URL || 'ws://localhost:8080/ws';
+  }
+  console.log('Admin Native WebSocket URL:', wsUrl);  // Debug: Confirm wss:// in prod console
+
+  // Native WebSocket factory (no SockJS)
+  const webSocketFactory = () => new WebSocket(wsUrl);
+
   client = new Client({
-    webSocketFactory: () => new SockJS(`${backendUrl}/ws`),
+    webSocketFactory,  // Native WS here
     connectHeaders: {
-      Authorization: `Bearer ${localStorage.getItem("jwt") || ""}`,
+      Authorization: `Bearer ${localStorage.getItem('jwt') || ''}`,
     },
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
     onConnect: () => {
-      console.log("WebSocket connected");
+      console.log('Admin WebSocket connected');
     },
     onDisconnect: () => {
-      console.log("WebSocket disconnected");
+      console.log('Admin WebSocket disconnected');
     },
     onStompError: (frame) => {
-      console.error("WebSocket error:", frame);
+      console.error('Admin WebSocket STOMP error:', frame);
     },
     onWebSocketClose: () => {
-      console.log("WebSocket closed, attempting to reconnect...");
+      console.log('Admin WebSocket closed, attempting to reconnect...');
+    },
+    onWebSocketError: (error) => {
+      console.error('Admin WebSocket error:', error);
     },
   });
 
@@ -37,13 +54,17 @@ export const initializeWebSocket = (): Client => {
   return client;
 };
 
-export const subscribeToTopic = (client: Client, topic: string, callback: (message: IMessage) => void) => {
+export const subscribeToTopic = (
+  client: Client,
+  topic: string,
+  callback: (message: IMessage) => void
+) => {
   if (client.connected) {
     return client.subscribe(topic, callback, { id: topic });
   } else {
-    console.warn("WebSocket not connected, attempting to subscribe after connection...");
+    console.warn("Admin WebSocket not connected, attempting to subscribe after connection...");
     const subscription = client.onConnect = () => {
-      console.log("WebSocket connected, subscribing to topic:", topic);
+      console.log("Admin WebSocket connected, subscribing to topic:", topic);
       client.subscribe(topic, callback, { id: topic });
     };
     return {
@@ -61,5 +82,6 @@ export const disconnectWebSocket = () => {
   if (client) {
     client.deactivate();
     client = null;
+    console.log("Admin WebSocket client deactivated");
   }
 };

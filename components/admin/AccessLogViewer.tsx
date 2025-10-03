@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
+// Remove: import { Client } from "@stomp/stompjs";
+// Remove: import SockJS from "sockjs-client";
 import TmofSpinner from "@/components/ui/TmofSpinner";
+// Add: Import your WS helpers
+import { initializeWebSocket, subscribeToTopic, disconnectWebSocket } from "@/lib/websocket";
 
 type AccessLog = {
   id: string;
@@ -36,6 +38,8 @@ const AccessLogViewer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
+  // Add: Ref for subscription
+  const subscriptionRef = useRef<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("jwt");
@@ -78,50 +82,34 @@ const AccessLogViewer = () => {
 
     fetchLogs();
 
-    // Create STOMP client with SockJS
-    const socket = new SockJS(`http://localhost:8080/ws?token=${encodeURIComponent(token)}`);
-    const stompClient = new Client({
-      webSocketFactory: () => socket,
-      debug: function (str) {
-        console.log("STOMP Debug:", str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+    // Initialize WS client
+    const stompClient = initializeWebSocket();
+
+    // Subscribe to topic (handles connection if needed)
+    subscriptionRef.current = subscribeToTopic(stompClient, "/topic/access-logs", (message) => {
+      try {
+        const newLog = JSON.parse(message.body);
+        setLogs((prevLogs) => {
+          const existingLogIndex = prevLogs.findIndex((log) => log.id === newLog.id);
+          if (existingLogIndex !== -1) {
+            const updatedLogs = [...prevLogs];
+            updatedLogs[existingLogIndex] = newLog;
+            return updatedLogs;
+          } else {
+            return [...prevLogs, newLog];
+          }
+        });
+      } catch (err) {
+        console.error("Error parsing WebSocket message:", err);
+      }
     });
 
-    stompClient.onConnect = function (frame) {
-      console.log("Connected to WebSocket: " + frame);
-      stompClient.subscribe("/topic/access-logs", (message) => {
-        try {
-          const newLog = JSON.parse(message.body);
-          setLogs((prevLogs) => {
-            const existingLogIndex = prevLogs.findIndex((log) => log.id === newLog.id);
-            if (existingLogIndex !== -1) {
-              const updatedLogs = [...prevLogs];
-              updatedLogs[existingLogIndex] = newLog;
-              return updatedLogs;
-            } else {
-              return [...prevLogs, newLog];
-            }
-          });
-        } catch (err) {
-          console.error("Error parsing WebSocket message:", err);
-        }
-      });
-    };
-
-    stompClient.onStompError = function (frame) {
-      setError("Failed to connect to WebSocket");
-      console.error("WebSocket connection error:", frame);
-    };
-
-    stompClient.activate();
-
+    // Cleanup
     return () => {
-      if (stompClient.active) {
-        stompClient.deactivate();
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
       }
+      disconnectWebSocket();
     };
   }, [router]);
 

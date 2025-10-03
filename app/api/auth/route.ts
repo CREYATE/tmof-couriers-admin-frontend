@@ -4,10 +4,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log("Auth proxy - Received body:", body);
-    const response = await fetch("http://localhost:8080/api/employee/login", {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+    const response = await fetch(`${backendUrl}/api/employee/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(request.headers.get("Authorization") && { Authorization: request.headers.get("Authorization")! }),
       },
       body: JSON.stringify(body),
     });

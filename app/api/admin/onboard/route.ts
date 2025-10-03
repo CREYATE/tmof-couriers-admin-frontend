@@ -5,7 +5,8 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     console.log("Onboard proxy - Received form data:", Object.fromEntries(formData));
 
-    const response = await fetch("http://localhost:8080/api/admin/onboard", {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+    const response = await fetch(`${backendUrl}/api/admin/onboard`, {
       method: "POST",
       headers: {
         Authorization: request.headers.get("Authorization") || "",

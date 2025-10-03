@@ -57,6 +57,8 @@ const AdminDashboard = () => {
     cancelled: 0,
   });
   const wsClientRef = useRef<Client | null>(null);
+  // Add: Track subscriptions for cleanup
+  const subscriptionsRef = useRef<any[]>([]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -65,55 +67,66 @@ const AdminDashboard = () => {
 
     fetchInitialData();
 
-    const wsClient = initializeWebSocket();
-    wsClientRef.current = wsClient;
+    // Initialize WS once
+    wsClientRef.current = initializeWebSocket();
 
-    const subscriptions: { unsubscribe: () => void; id: string }[] = [];
-
-    const checkConnection = setInterval(() => {
-      if (wsClient.connected) {
-        clearInterval(checkConnection);
-
-        subscriptions.push(
-          subscribeToTopic(wsClient, "/topic/orders", (message) => {
-            try {
-              const order: Order = JSON.parse(message.body);
-              console.log("WebSocket order update:", order);
-              setOrders((prev) =>
-                prev.some((o) => o.trackingNumber === order.trackingNumber)
-                  ? prev.map((o) => (o.trackingNumber === order.trackingNumber ? { ...o, ...order } : o))
-                  : [...prev, order]
-              );
-              fetchOrderCounts();
-            } catch (err) {
-              console.error("Error parsing WebSocket order message:", err);
-            }
-          })
-        );
-
-        subscriptions.push(
-          subscribeToTopic(wsClient, "/topic/driver-assignments", (message) => {
-            try {
-              const order: Order = JSON.parse(message.body);
-              console.log("WebSocket driver assignment update:", order);
-              setOrders((prev) =>
-                prev.map((o) => (o.trackingNumber === order.trackingNumber ? { ...o, ...order } : o))
-              );
-              fetchOrderCounts();
-            } catch (err) {
-              console.error("Error parsing WebSocket driver assignment message:", err);
-            }
-          })
-        );
-      }
-    }, 100);
-
+    // Cleanup
     return () => {
-      clearInterval(checkConnection);
-      subscriptions.forEach((sub) => sub.unsubscribe());
+      subscriptionsRef.current.forEach((sub) => sub.unsubscribe());
+      subscriptionsRef.current = [];
       disconnectWebSocket();
+      wsClientRef.current = null;
     };
   }, []);
+
+  // Subscribe after orders load
+  useEffect(() => {
+    if (!wsClientRef.current || orders.length === 0) return;
+
+    const wsClient = wsClientRef.current;
+
+    // Clear old subs
+    subscriptionsRef.current.forEach((sub) => sub.unsubscribe());
+    subscriptionsRef.current = [];
+
+    // Subscribe to orders
+    const orderSub = subscribeToTopic(wsClient, "/topic/orders", (message) => {
+      try {
+        const order: Order = JSON.parse(message.body);
+        console.log("WebSocket order update:", order);
+        setOrders((prev) =>
+          prev.some((o) => o.trackingNumber === order.trackingNumber)
+            ? prev.map((o) => (o.trackingNumber === order.trackingNumber ? { ...o, ...order } : o))
+            : [...prev, order]
+        );
+        fetchOrderCounts();
+      } catch (err) {
+        console.error("Error parsing WebSocket order message:", err);
+      }
+    });
+    subscriptionsRef.current.push(orderSub);
+
+    // Subscribe to driver assignments
+    const assignmentSub = subscribeToTopic(wsClient, "/topic/driver-assignments", (message) => {
+      try {
+        const order: Order = JSON.parse(message.body);
+        console.log("WebSocket driver assignment update:", order);
+        setOrders((prev) =>
+          prev.map((o) => (o.trackingNumber === order.trackingNumber ? { ...o, ...order } : o))
+        );
+        fetchOrderCounts();
+      } catch (err) {
+        console.error("Error parsing WebSocket driver assignment message:", err);
+      }
+    });
+    subscriptionsRef.current.push(assignmentSub);
+
+    // Cleanup on unmount
+    return () => {
+      subscriptionsRef.current.forEach((sub) => sub.unsubscribe());
+      subscriptionsRef.current = [];
+    };
+  }, [orders.length]);
 
   const fetchOrders = async () => {
     try {

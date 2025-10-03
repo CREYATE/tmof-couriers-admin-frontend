@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,8 @@ import { Search, Edit, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { initializeWebSocket, subscribeToTopic } from "@/lib/websocket";
+import { initializeWebSocket, subscribeToTopic, disconnectWebSocket } from "@/lib/websocket";
+import { Client } from "@stomp/stompjs";
 
 interface Driver {
   id: string;
@@ -41,6 +42,9 @@ const OrderManagement = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const wsClientRef = useRef<Client | null>(null);
+  // Add: Track subscriptions for cleanup
+  const subscriptionsRef = useRef<any[]>([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -81,8 +85,30 @@ const OrderManagement = () => {
     fetchOrders();
     fetchDrivers();
 
-    const client = initializeWebSocket();
-    const subscription = subscribeToTopic(client, "/topic/orders", (message) => {
+    // Initialize WS once
+    wsClientRef.current = initializeWebSocket();
+
+    // Cleanup
+    return () => {
+      subscriptionsRef.current.forEach((sub) => sub.unsubscribe());
+      subscriptionsRef.current = [];
+      disconnectWebSocket();
+      wsClientRef.current = null;
+    };
+  }, []);
+
+  // Subscribe after data loads
+  useEffect(() => {
+    if (!wsClientRef.current || orders.length === 0) return;
+
+    const client = wsClientRef.current;
+
+    // Clear old subs
+    subscriptionsRef.current.forEach((sub) => sub.unsubscribe());
+    subscriptionsRef.current = [];
+
+    // Subscribe to orders
+    const orderSub = subscribeToTopic(client, "/topic/orders", (message) => {
       const order = JSON.parse(message.body);
       setOrders((prev) =>
         prev.some((o) => o.trackingNumber === order.trackingNumber)
@@ -90,20 +116,23 @@ const OrderManagement = () => {
           : [...prev, order]
       );
     });
+    subscriptionsRef.current.push(orderSub);
 
-    const driverAssignmentSubscription = subscribeToTopic(client, "/topic/driver-assignments", (message) => {
+    // Subscribe to driver assignments
+    const assignmentSub = subscribeToTopic(client, "/topic/driver-assignments", (message) => {
       const order = JSON.parse(message.body);
       setOrders((prev) =>
         prev.map((o) => (o.trackingNumber === order.trackingNumber ? order : o))
       );
     });
+    subscriptionsRef.current.push(assignmentSub);
 
+    // Cleanup on unmount
     return () => {
-      subscription.unsubscribe();
-      driverAssignmentSubscription.unsubscribe();
-      client.deactivate();
+      subscriptionsRef.current.forEach((sub) => sub.unsubscribe());
+      subscriptionsRef.current = [];
     };
-  }, []);
+  }, [orders.length]);
 
   const handleAssignDriver = async (trackingNumber: string, driverId: string) => {
     try {
