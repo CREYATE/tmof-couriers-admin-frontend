@@ -34,11 +34,28 @@ function renderSection(tab: string) {
 
 export default function AdminLayout({ children }: { children?: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
-      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="ml-64 pt-20 h-[calc(100vh-80px)] overflow-y-auto p-4">
+      <AdminHeader onMenuClick={toggleSidebar} />
+      <AdminSidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab}
+        isOpen={sidebarOpen}
+        onClose={closeSidebar}
+      />
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+      <main className="lg:ml-64 pt-20 min-h-[calc(100vh-80px)] overflow-y-auto p-2 sm:p-4 lg:p-6">
         {renderSection(activeTab)}
       </main>
     </div>

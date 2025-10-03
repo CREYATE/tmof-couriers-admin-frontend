@@ -365,7 +365,7 @@ const AnalyticsDashboard = () => {
   }
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* <h2 className="text-2xl font-bold mt-6 mb-2">Analytics</h2> */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -380,11 +380,11 @@ const AnalyticsDashboard = () => {
           <CardTitle>Analytics Overview</CardTitle>
         </CardHeader> */}
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-                <p className="text-gray-600">Last updated: {lastUpdated.toLocaleTimeString()}</p>
+                <h1 className="text-2xl sm:text-3xl font-bold">Analytics Dashboard</h1>
+                <p className="text-gray-600 text-sm sm:text-base">Last updated: {lastUpdated.toLocaleTimeString()}</p>
               </div>
               {/* <div className="flex items-center gap-3">
                 <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
@@ -407,102 +407,123 @@ const AnalyticsDashboard = () => {
                 </Button>
               </div> */}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{analyticsData.orders.total}</div>
-                  <p className="text-xs text-muted-foreground">{analyticsData.orders.thisMonth} this month</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(analyticsData.revenue.total)}</div>
-                  <p className="text-xs text-muted-foreground">{formatCurrency(analyticsData.revenue.thisMonth)} this month</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
-                  <Truck className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{analyticsData.drivers.active}</div>
-                  <p className="text-xs text-muted-foreground">{analyticsData.drivers.available} available</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-400">Total Customers</CardTitle>
-                  <Users className="h-4 w-4 text-gray-400" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-gray-400">Feature will be available when customer wallet has been built</div>
-                </CardContent>
-              </Card>
+            {/* Mobile-optimized stats cards with horizontal scroll */}
+            <div className="w-full overflow-x-auto pb-2">
+              <div className="flex gap-4 min-w-fit lg:grid lg:grid-cols-4 lg:gap-6">
+                <Card className="min-w-[280px] sm:min-w-[300px] lg:min-w-0 flex-shrink-0">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.orders.total}</div>
+                    <p className="text-xs text-muted-foreground">{analyticsData.orders.thisMonth} this month</p>
+                  </CardContent>
+                </Card>
+                <Card className="min-w-[280px] sm:min-w-[300px] lg:min-w-0 flex-shrink-0">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{formatCurrency(analyticsData.revenue.total)}</div>
+                    <p className="text-xs text-muted-foreground">{formatCurrency(analyticsData.revenue.thisMonth)} this month</p>
+                  </CardContent>
+                </Card>
+                <Card className="min-w-[280px] sm:min-w-[300px] lg:min-w-0 flex-shrink-0">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
+                    <Truck className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.drivers.active}</div>
+                    <p className="text-xs text-muted-foreground">{analyticsData.drivers.available} available</p>
+                  </CardContent>
+                </Card>
+                <Card className="min-w-[280px] sm:min-w-[300px] lg:min-w-0 flex-shrink-0">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-400">Total Customers</CardTitle>
+                    <Users className="h-4 w-4 text-gray-400" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-gray-400">Feature will be available when customer wallet has been built</div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
             <Tabs defaultValue="overview" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview" className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="orders" className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  Orders
-                </TabsTrigger>
-                <TabsTrigger value="performance" className="flex items-center gap-2">
-                  <Truck className="h-4 w-4" />
-                  Performance
-                </TabsTrigger>
-                <TabsTrigger value="revenue" className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Revenue
-                </TabsTrigger>
-              </TabsList>
+              <div className="w-full overflow-x-auto">
+                <TabsList className="grid w-full grid-cols-4 min-w-fit h-auto p-1">
+                  <TabsTrigger 
+                    value="overview" 
+                    className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap"
+                  >
+                    <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Overview</span>
+                    <span className="sm:hidden">Overview</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="orders" 
+                    className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap"
+                  >
+                    <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Orders</span>
+                    <span className="sm:hidden">Orders</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="performance" 
+                    className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap"
+                  >
+                    <Truck className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Performance</span>
+                    <span className="sm:hidden">Perf</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="revenue" 
+                    className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap"
+                  >
+                    <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Revenue</span>
+                    <span className="sm:hidden">Revenue</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
               <TabsContent value="overview" className="space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5" />
+                      <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                        <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
                         Order Status Distribution
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="space-y-3 p-3 sm:p-6">
                       <div className="flex items-center justify-between">
-                        <span>Pending</span>
+                        <span className="text-sm sm:text-base">Pending</span>
                         <div className="px-2 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-semibold">{analyticsData.orders.pending}</div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span>In Transit</span>
+                        <span className="text-sm sm:text-base">In Transit</span>
                         <div className="px-2 py-1 bg-primary text-primary-foreground rounded-full text-xs font-semibold">{analyticsData.orders.inTransit}</div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span>Delivered</span>
+                        <span className="text-sm sm:text-base">Delivered</span>
                         <div className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">{analyticsData.orders.delivered}</div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span>Failed</span>
+                        <span className="text-sm sm:text-base">Failed</span>
                         <div className="px-2 py-1 bg-destructive text-destructive-foreground rounded-full text-xs font-semibold">{analyticsData.orders.failed}</div>
                       </div>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <PieChart className="h-5 w-5" />
+                      <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                        <PieChart className="h-4 w-4 sm:h-5 sm:w-5" />
                         Performance Metrics
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex items-center justify-center h-32">
+                    <CardContent className="flex items-center justify-center h-32 p-3 sm:p-6">
                       <div className="text-sm text-gray-400 text-center">Feature under construction</div>
                     </CardContent>
                   </Card>
@@ -511,25 +532,25 @@ const AnalyticsDashboard = () => {
               <TabsContent value="orders" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Order Analytics</CardTitle>
+                    <CardTitle className="text-sm sm:text-base lg:text-lg">Order Analytics</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">{analyticsData.orders.today}</div>
-                        <div className="text-sm text-gray-600">Today</div>
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                      <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
+                        <div className="text-xl sm:text-2xl font-bold text-blue-600">{analyticsData.orders.today}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Today</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{analyticsData.orders.thisWeek}</div>
-                        <div className="text-sm text-gray-600">This Week</div>
+                      <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">{analyticsData.orders.thisWeek}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">This Week</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-600">{analyticsData.orders.thisMonth}</div>
-                        <div className="text-sm text-gray-600">This Month</div>
+                      <div className="text-center p-3 sm:p-4 bg-purple-50 rounded-lg">
+                        <div className="text-xl sm:text-2xl font-bold text-purple-600">{analyticsData.orders.thisMonth}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">This Month</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-600">{analyticsData.orders.total}</div>
-                        <div className="text-sm text-gray-600">Total</div>
+                      <div className="text-center p-3 sm:p-4 bg-orange-50 rounded-lg">
+                        <div className="text-xl sm:text-2xl font-bold text-orange-600">{analyticsData.orders.total}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Total</div>
                       </div>
                     </div>
                   </CardContent>

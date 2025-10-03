@@ -114,50 +114,95 @@ const AccessLogViewer = () => {
   }, [router]);
 
   if (loading) return <TmofSpinner show={true} />;
-  if (error) return <p className="text-tmof-red">{error}</p>;
+  if (error) return <p className="text-red-600 p-4">{error}</p>;
 
   return (
-    <div className="space-y-8">
-      <h2 className="text-2xl font-bold mt-6 mb-2">System Login Tracker</h2>
-      <div className="mt-6" />
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+      <h2 className="text-xl sm:text-2xl font-bold">System Login Tracker</h2>
+      
       <Card>
         <CardHeader>
-          <CardTitle>Driver Login Activity</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Driver Login Activity</CardTitle>
         </CardHeader>
-        <CardContent>
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b">
-                <th className="py-2">Driver</th>
-                <th>Login Time</th>
-                <th>Logout Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log: any) => (
-                <tr key={log.id} className="border-b">
-                  <td className="py-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                        {log.profilePic ? (
-                          <img
-                            src={`data:image/jpeg;base64,${log.profilePic}`}
-                            alt="Profile"
-                            className="object-cover w-full h-full"
-                          />
-                        ) : (
-                          <User className="h-6 w-6 text-gray-400" />
-                        )}
-                      </div>
-                      <span>{log.name}</span>
-                    </div>
-                  </td>
-                  <td>{log.login}</td>
-                  <td>{log.logout}</td>
+        <CardContent className="p-3 sm:p-6">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-2">Driver</th>
+                  <th>Login Time</th>
+                  <th>Logout Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {logs.map((log: any) => (
+                  <tr key={log.id} className="border-b">
+                    <td className="py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                          {log.profilePic ? (
+                            <img
+                              src={`data:image/jpeg;base64,${log.profilePic}`}
+                              alt="Profile"
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <User className="h-6 w-6 text-gray-400" />
+                          )}
+                        </div>
+                        <span>{log.name}</span>
+                      </div>
+                    </td>
+                    <td>{log.login}</td>
+                    <td>{log.logout}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-3">
+            {logs.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No access logs available</p>
+              </div>
+            ) : (
+              logs.map((log: any) => (
+                <div key={log.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {log.profilePic ? (
+                        <img
+                          src={`data:image/jpeg;base64,${log.profilePic}`}
+                          alt="Profile"
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm sm:text-base truncate">{log.name}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Driver</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+                    <div className="p-2 bg-green-50 rounded">
+                      <span className="font-medium text-green-800">Login:</span>
+                      <p className="text-green-700 mt-1">{log.login}</p>
+                    </div>
+                    <div className="p-2 bg-orange-50 rounded">
+                      <span className="font-medium text-orange-800">Logout:</span>
+                      <p className="text-orange-700 mt-1">{log.logout || "Still active"}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
