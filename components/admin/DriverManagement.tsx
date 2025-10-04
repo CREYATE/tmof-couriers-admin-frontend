@@ -205,48 +205,35 @@ export default function DriverManagement() {
           </div>
           
           {/* Mobile Card View */}
-          <div className="lg:hidden space-y-3">
+          <div className="lg:hidden space-y-4">
             {drivers.map(driver => (
-              <div key={driver.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+              <div key={driver.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                {/* Header with Profile and Status */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {driver.profilePic ? (
                       <img src={driver.profilePic} alt="Profile" className="object-cover w-full h-full" />
                     ) : (
-                      <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+                      <User className="h-6 w-6 text-gray-400" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm sm:text-base truncate">{driver.name}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{driver.email}</p>
+                    <h3 className="font-semibold text-base text-gray-900 truncate">{driver.name}</h3>
+                    <p className="text-sm text-gray-500 truncate">{driver.email}</p>
                   </div>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    driver.status === 'active' 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-red-100 text-red-700'
+                  }`}>
                     {driver.status}
                   </span>
                 </div>
-                <div className="text-xs sm:text-sm space-y-1">
-                  <p><span className="font-medium">Phone:</span> {driver.phone}</p>
+                
+                {/* Driver Details */}
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Phone:</span> {driver.phone || 'Not provided'}
                 </div>
-                {/* <div className="flex gap-2 pt-2 border-t">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => handleEdit(driver.id)}
-                    className="flex-1 text-xs sm:text-sm"
-                  >
-                    <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    onClick={() => handleDisable(driver.id)}
-                    className="flex-1 text-xs sm:text-sm"
-                  >
-                    <Ban className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Disable
-                  </Button>
-                </div> */}
               </div>
             ))}
           </div>
