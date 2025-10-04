@@ -408,7 +408,7 @@ const AnalyticsDashboard = () => {
               </div> */}
             </div>
             {/* Mobile-optimized stats cards with horizontal scroll */}
-            <div className="w-full overflow-x-auto pb-2">
+            <div className="w-full overflow-x-auto pb-2 stats-scroll">
               <div className="flex gap-4 min-w-fit lg:grid lg:grid-cols-4 lg:gap-6">
                 <Card className="min-w-[280px] sm:min-w-[300px] lg:min-w-0 flex-shrink-0">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -452,7 +452,7 @@ const AnalyticsDashboard = () => {
               </div>
             </div>
             <Tabs defaultValue="overview" className="space-y-4">
-              <div className="w-full overflow-x-auto">
+              <div className="w-full overflow-x-auto stats-scroll">
                 <TabsList className="grid w-full grid-cols-4 min-w-fit h-auto p-1">
                   <TabsTrigger 
                     value="overview" 
