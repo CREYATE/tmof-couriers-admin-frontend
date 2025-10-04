@@ -44,7 +44,7 @@ export default function DriverManagement() {
     const fetchDrivers = async () => {
       setIsLoadingDrivers(true);
       try {
-        const response = await axios.get<Driver[]>("/api/admin/drivers/available", {
+        const response = await axios.get<Driver[]>("/api/admin/drivers", {
           headers: { Authorization: `Bearer ${localStorage.getItem("jwt")}` },
         });
         setDrivers(response.data);
